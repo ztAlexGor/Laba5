@@ -9,87 +9,80 @@
 
 using namespace std;
 
-class Node {
-	char data;
-	int ind;
-public:
-	Node* left;
-	Node* right;
-	Node(char a, int ind) {
-		data = a;
-		left = nullptr;
-		right = nullptr;
-		this->ind = ind;
-	}
-	int GetInd() {
-		return ind;
-	}
-	char GetData() {
-		return data;
-	}
-};
-
-class Tree {
-public:
-	Node* root;
-	Tree(string S) {
-		root = nullptr;
-		AddNode(S[S.size() / 2], S.size() / 2);
-		int a = S.size() / 2;
-		for (int i = 1; i <= S.size() / 2; i++) { // не успел написать формулировку порядка входа символов в дерево(
-			if (a - i >= 0)
-				AddNode(S[a - i], a - i);
-			if (a + i < S.size())
-				AddNode(S[a + i], a + i);
-		}
-	}
-	void AddNode(char a, int ind) {
-		if (root == nullptr) {
-			root = new Node(a, ind);
-			return;
-		}
-		bool k = true;
-		Node* curr = root;
-		while (k) {
-			if (curr->GetInd() < ind) {
-				if (curr->left == nullptr) {
-					curr->left = new Node(a, ind);
-					k = false;
-				}
-				else
-					curr = curr->left;
-			}
-			if (curr->GetInd() > ind) {
-				if (curr->right == nullptr) {
-					curr->right = new Node(a, ind);
-					k = false;
-				}
-				else
-					curr = curr->right;
-			}
-		}
-	}
-	void InfTraverse(Node* curr) {
-		if (curr->left) InfTraverse(curr->left);
-		cout << curr->GetData();
-		if (curr->right) InfTraverse(curr->right);
-	}
-	void PreTraverse(Node* curr) {
-		cout << curr->GetData();
-		if (curr->left) InfTraverse(curr->left);
-		if (curr->right) InfTraverse(curr->right);
-	}
-	void Traverse(Node* curr) {
-		cout << curr->GetData();
-		if (curr->left) InfTraverse(curr->left);
-		if (curr->right) InfTraverse(curr->right);
-	}
-};
+bool isNumber(string);
+float stringToFloat(string);
+queue<string> parseToTokens(string);
+queue<string> readFromFile(ifstream&);
 
 int main() {
-	Tree Prim("9+8*(7+(6*(5+4)-(3-2))+1))");
-	Prim.InfTraverse(Prim.root);
-	cout << endl;
-	Prim.PreTraverse(Prim.root);
+	ifstream input("d:\\Учёба\\Файлы общего доступа\\KOD.txt");
+
+	queue<string> kod = readFromFile(input);
+	/*while (!kod.empty()) {
+		cout << kod.front() << endl;
+		kod.pop();
+	}*/
+
 	return 0;
+}
+
+bool isNumber(string s) {
+	for (int i = 0; i < s.size(); i++) {
+		if (((int)s[i] < 48 || (int)s[i] > 57) && s[i] != '.')return false;
+	}
+	return true;
+}
+
+float stringToFloat(string s) {
+	float part1 = 0, part2 = 0;
+	int it = 0;
+	while (it < s.size() && s[it] != '.') {
+		part1 *= 10;
+		part1 += (int)s[it] - 48;
+		it++;
+	}
+	if (it != s.size()) {
+		for (int i = s.size() - 1; i > it; i--) {
+			part2 += (int)s[i] - 48;
+			part2 /= 10;
+		}
+	}
+	return part1 + part2;
+}
+
+queue<string> parseToTokens(string s) {
+	queue<string> res;
+	string token = "";
+	for (int i = 0; i < s.size(); i++) {
+		string curr = "";
+		curr += s[i];
+		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";") {
+			if (token != "")res.push(token);
+			if (curr != " ")res.push(curr);
+			token = "";
+		}
+		else {
+			token += curr;
+			/*if (token == "if") {
+				res.push(token);
+				token = "";
+			}*/
+		}
+	}
+	res.push(token);
+	return res;
+}
+
+queue<string> readFromFile(ifstream& inp) {
+	queue<string> kod, temp;
+	string s;
+	while (!inp.eof()) {
+		getline(inp, s);
+		temp = parseToTokens(s);
+		while (!temp.empty()) {
+			if (temp.front()!="")kod.push(temp.front());
+			temp.pop();
+		}
+	}
+	return kod;
 }
