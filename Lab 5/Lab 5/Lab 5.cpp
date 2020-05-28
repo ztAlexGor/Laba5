@@ -6,90 +6,136 @@
 #include <ctime>
 #include <stack>
 #include <string>
+#include <map>
+#include <vector>
 
 using namespace std;
 
 class Node {
-	char data;
-	int ind;
+	string data;
 public:
 	Node* left;
 	Node* right;
-	Node(char a, int ind) {
+	Node(string a) {
 		data = a;
 		left = nullptr;
 		right = nullptr;
-		this->ind = ind;
 	}
-	int GetInd() {
-		return ind;
+	bool isNumber() {
+		for (int i = 0; i < data.size(); i++) {
+			if (((int)data[i] < 48 || (int)data[i] > 57) && data[i] != '.')
+				return false;
+		}
+		return true;
 	}
-	char GetData() {
+
+	string GetSymbol() {
 		return data;
+	}
+
+	float GetNumber() {
+		float part1 = 0, part2 = 0;
+		int it = 0;
+		while (it < data.size() && data[it] != '.') {
+			part1 *= 10;
+			part1 += (int)data[it] - 48;
+			it++;
+		}
+		if (it != data.size()) {
+			for (int i = data.size() - 1; i > it; i--) {
+				part2 += (int)data[i] - 48;
+				part2 /= 10;
+			}
+		}
+		return part1 + part2;
 	}
 };
 
 class Tree {
+	Node* head;
 public:
-	Node* root;
-	Tree(string S) {
-		root = nullptr;
-		AddNode(S[S.size() / 2], S.size() / 2);
-		int a = S.size() / 2;
-		for (int i = 1; i <= S.size() / 2; i++) { // не успел написать формулировку порядка входа символов в дерево(
-			if (a - i >= 0)
-				AddNode(S[a - i], a - i);
-			if (a + i < S.size())
-				AddNode(S[a + i], a + i);
+	virtual float Count(Node* start) {}
+	virtual Node* GetHead() {}
+};
+
+
+
+class BinTree : public Tree {
+	bool IsState;
+	StatementList* parent;
+	Node* head;
+public:
+	BinTree(string ryad) {
+		/////////////Stroenie dereva is ryadka///////////////
+	}
+	Node* GetHead() {
+		return head;
+	}
+	float Count(Node* start) {
+		if (!start->left) {
+			if (start->isNumber)
+				return start->GetNumber();
+			return parent->GetNumber(start->GetSymbol());
 		}
+		if (start->GetSymbol() == "=")
+			return Count(start->right);
+		if (start->GetSymbol() == "+")
+			return Count(start->left) + Count(start->right);
+		if (start->GetSymbol() == "-")
+			return Count(start->left) - Count(start->right);
+		if (start->GetSymbol() == "*")
+			return Count(start->left) * Count(start->right);
+		if (start->GetSymbol() == "/")
+			return Count(start->left) / Count(start->right);
+		if (start->GetSymbol() == "^")
+			return pow(Count(start->left), Count(start->right));
 	}
-	void AddNode(char a, int ind) {
-		if (root == nullptr) {
-			root = new Node(a, ind);
-			return;
-		}
-		bool k = true;
-		Node* curr = root;
-		while (k) {
-			if (curr->GetInd() < ind) {
-				if (curr->left == nullptr) {
-					curr->left = new Node(a, ind);
-					k = false;
-				}
-				else
-					curr = curr->left;
-			}
-			if (curr->GetInd() > ind) {
-				if (curr->right == nullptr) {
-					curr->right = new Node(a, ind);
-					k = false;
-				}
-				else
-					curr = curr->right;
-			}
-		}
+	void SetState(bool k) {
+		IsState = k;
 	}
-	void InfTraverse(Node* curr) {
-		if (curr->left) InfTraverse(curr->left);
-		cout << curr->GetData();
-		if (curr->right) InfTraverse(curr->right);
-	}
-	void PreTraverse(Node* curr) {
-		cout << curr->GetData();
-		if (curr->left) InfTraverse(curr->left);
-		if (curr->right) InfTraverse(curr->right);
-	}
-	void Traverse(Node* curr) {
-		cout << curr->GetData();
-		if (curr->left) InfTraverse(curr->left);
-		if (curr->right) InfTraverse(curr->right);
+	bool IsState() {
+		return IsState;
 	}
 };
 
-int main() {
-	Tree Prim("9+8*(7+(6*(5+4)-(3-2))+1))");
-	Prim.InfTraverse(Prim.root);
-	cout << endl;
-	Prim.PreTraverse(Prim.root);
-	return 0;
-}
+class IfTree : public Tree {
+	BinTree* Condition;
+	BinTree* True;
+	BinTree* False;
+public:
+	IfTree(string cond, string yes, string no) {
+		Condition = new BinTree(cond);
+		True = new BinTree(yes);
+		False = new BinTree(no);
+	}
+	float Count() {
+		if (Condition->Count(Condition->GetHead()) != 0)
+			return True->Count(True->GetHead());
+		else
+			return False->Count(False->GetHead());
+	}
+};
+
+class StatementList {
+	map<string, float> statments;
+	vector<Tree*> StTrees;
+public:
+	StatementList(string file) {
+		ifstream fin;
+		fin.open(file);
+		string ForAdd;
+		//////////////////////Tut delenie na ryadki i IF'i || zapihivanie ih v vector/////////////////////
+	}
+	float GetNumber(string key) {
+		return statments[key];
+	}
+	void Count() {
+		for (int i = 0; i < StTrees.size(); i++) {
+			if (i = StTrees.size() - 1)
+				cout << "Result = " << StTrees[i] << ".";
+			else
+				statments[StTrees[i]->GetHead()->left->GetSymbol()] = StTrees[i]->Count(StTrees[i]->GetHead()->right);
+		}
+	}
+};
+
