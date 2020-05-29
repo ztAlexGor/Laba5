@@ -68,21 +68,38 @@ class StatementList {
 	map<string, float> statments;
 	vector<Tree*> StTrees;
 public:
-	StatementList(string file) {
-		ifstream fin;
-		fin.open(file);
-		string ForAdd;
-		//////////////////////Tut delenie na ryadki i IF'i || zapihivanie ih v vector/////////////////////
+	StatementList(queue<string> ryad) {
+		while (!ryad.empty()) {
+			if (ryad.front()[0] == 'i' && ryad.front()[1] == 'f' && ryad.front()[2] == '(') {
+				string cond, yes, no;
+				int etap = 0;
+				for (int i = 0; i < ryad.front().size(); i++) {
+					if (ryad.front()[i] == '(' || ryad.front()[i] == '{')
+						etap++;
+					if (etap == 1 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						cond += ryad.front()[i];
+					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						yes += ryad.front()[i];
+					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						no += ryad.front()[i];
+				}
+				Tree* New = new IfTree(cond, yes, no);
+			}
+
+		}
 	}
 	float GetNumber(string key) {
 		return statments[key];
 	}
+	void AddStatment(string key, float value) {
+		statments[key] = value;
+	}
 	void Count() {
 		for (int i = 0; i < StTrees.size(); i++) {
 			if (i = StTrees.size() - 1)
-				cout << "Result = " << StTrees[i] << ".";
+				cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ".";
 			else
-				statments[StTrees[i]->GetHead()->left->GetSymbol()] = StTrees[i]->Count(StTrees[i]->GetHead()->right);
+				StTrees[i]->Count(StTrees[i]->GetHead());
 		}
 	}
 };
@@ -104,8 +121,9 @@ public:
 				return start->GetNumber();
 			return parent->GetNumber(start->GetSymbol());
 		}
-		if (start->GetSymbol() == "=")
-			return Count(start->right);
+		if (start->GetSymbol() == "=") {
+			parent->AddStatment(start->left->GetSymbol(), Count(start->right));
+		}
 		if (start->GetSymbol() == "+")
 			return Count(start->left) + Count(start->right);
 		if (start->GetSymbol() == "-")
@@ -120,7 +138,7 @@ public:
 	void SetState(bool k) {
 		IsState = k;
 	}
-	bool IsState() {
+	bool IsItState() {
 		return IsState;
 	}
 };
@@ -147,14 +165,12 @@ public:
 
 
 int main() {
-	ifstream input("d:\\Учёба\\Файлы общего доступа\\KOD.txt");
-
+	ifstream input;
+	input.open("d:\\Учёба\\Файлы общего доступа\\KOD.txt");
+	string s;
 	queue<string> kod;
 	kod = readFromFile(input);
-	while (!kod.empty()) {
-		cout << kod.front() << endl;
-		kod.pop();
-	}
+	StatementList Lab(kod);
 	return 0;
 }
 
@@ -188,7 +204,7 @@ queue<string> parseToTokens(string s) {
 	for (int i = 0; i < s.size(); i++) {
 		string curr = "";
 		curr += s[i];
-		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";") {
+		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " /*|| curr == "}" || curr == "{" */|| curr == ";") {
 			if (token != "")res.push(token);
 			if (curr != " ")res.push(curr);
 			token = "";
@@ -206,15 +222,21 @@ queue<string> parseToTokens(string s) {
 }
 
 queue<string> readFromFile(ifstream& inp) {
-	queue<string> kod, temp;
+	queue<string> kod;
 	string s;
 	while (!inp.eof()) {
-		getline(inp, s);
-		temp = parseToTokens(s);
-		while (!temp.empty()) {
-			if (temp.front() != "")kod.push(temp.front());
-			temp.pop();
+		getline(inp, s,';');
+		if (s[0] == '\n')
+			s.erase(0, 1);
+		if (s[0] == 'i' && s[1] == 'f' && s[2] == '(') {
+			string g;
+			getline(inp, g, ';');
+			s += g;
+			getline(inp, g, '}');
+			s += g;
+			s += "}";
 		}
+		kod.push(s);
 	}
 	return kod;
 }
