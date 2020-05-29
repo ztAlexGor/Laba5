@@ -13,7 +13,7 @@ using namespace std;
 
 bool isNumber(string);
 float stringToFloat(string);
-queue<string> parseToTokens(string);
+vector<string> parseToTokens(string);
 queue<string> readFromFile(ifstream&);
 
 
@@ -26,6 +26,9 @@ public:
 		data = a;
 		left = nullptr;
 		right = nullptr;
+	}
+	void SetData(string data) {
+		this->data = data;
 	}
 	bool isNumber() {
 		for (int i = 0; i < data.size(); i++) {
@@ -58,10 +61,10 @@ public:
 };
 
 class Tree {
-	Node* head;
 public:
-	virtual float Count(Node* start) {}
-	virtual Node* GetHead() {}
+	float Count(Node* start);
+	Node* GetHead();
+	void SetParent(StatementList* parent);
 };
 
 class StatementList {
@@ -83,7 +86,16 @@ public:
 					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
 						no += ryad.front()[i];
 				}
+				ryad.pop();
 				Tree* New = new IfTree(cond, yes, no);
+				StTrees.push_back(New);
+				New->SetParent(this);
+			}
+			else {
+				Tree* New = new BinTree(ryad.front());
+				ryad.pop();
+				StTrees.push_back(New);
+				New->SetParent(this);
 			}
 
 		}
@@ -110,7 +122,78 @@ class BinTree : public Tree {
 	Node* head;
 public:
 	BinTree(string ryad) {
-		/////////////Stroenie dereva is ryadka///////////////
+		vector<string> tokens = parseToTokens(ryad);
+		AddNode(head, tokens);
+	}
+	void AddNode(Node* head, vector<string> tokens) {
+		if (tokens.size() == 1) {
+			head->SetData(tokens[0]);
+		}
+		else {
+			int brackets = 0;
+			int ind, prior = 5;
+			for (int i = tokens.size() - 1; i >= 0; i--) {
+				if (tokens[i] == ")") {
+					brackets++;
+					continue;
+				}
+				if (tokens[i] == "(") {
+					brackets--;
+					continue;
+				}
+				if (brackets == 0 && prior > 1 && tokens[i] == "=") {
+					prior = 1;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 2 && (tokens[i] == "+" || tokens[i] == "-")) {
+					prior = 2;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 3 && (tokens[i] == "*" || tokens[i] == "/")) {
+					prior = 3;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 4 && tokens[i] == "^") {
+					prior = 4;
+					ind = i;
+				}
+			}
+			head->SetData(tokens[ind]);
+			vector<string> left, right;
+			for (int i = 0; i < tokens.size(); i++) {
+				if (i < ind)
+					left.push_back(tokens[i]);
+				if (i > ind)
+					right.push_back(tokens[i]);
+			}
+			bool w = true;
+			while (w) {
+				if (left[0] == "(" && left[left.size() - 1] == ")") {
+					left.pop_back();
+					for (int i = 0; i < left.size() - 1; i++)
+						left[i] = left[i + 1];
+					left.pop_back();
+				}
+				else
+					w = false;
+			}
+			while (!w) {
+				if (right[0] == "(" && right[right.size() - 1] == ")") {
+					right.pop_back();
+					for (int i = 0; i < right.size() - 1; i++)
+						right[i] = right[i + 1];
+					right.pop_back();
+				}
+				else
+					w = true;
+			}
+			tokens.clear();
+			AddNode(head->left, left);
+			AddNode(head->right, right);
+		}
+	}
+	void SetParent(StatementList* parent) {
+		this->parent = parent;
 	}
 	Node* GetHead() {
 		return head;
@@ -144,16 +227,23 @@ public:
 };
 
 class IfTree : public Tree {
+	StatementList* parent;
 	BinTree* Condition;
 	BinTree* True;
 	BinTree* False;
 public:
 	IfTree(string cond, string yes, string no) {
 		Condition = new BinTree(cond);
+		Condition->SetParent(parent);
 		True = new BinTree(yes);
+		True->SetParent(parent);
 		False = new BinTree(no);
+		False->SetParent(parent);
 	}
-	float Count() {
+	void SetParent(StatementList* parent) {
+		this->parent = parent;
+	}
+	float Count(){
 		if (Condition->Count(Condition->GetHead()) != 0)
 			return True->Count(True->GetHead());
 		else
@@ -167,9 +257,12 @@ public:
 int main() {
 	ifstream input;
 	input.open("d:\\Учёба\\Файлы общего доступа\\KOD.txt");
-	string s;
 	queue<string> kod;
 	kod = readFromFile(input);
+	while (!kod.empty()) {
+		cout << kod.front() << endl << "//////////////////////////////////" << endl;
+		kod.pop();
+	}
 	StatementList Lab(kod);
 	return 0;
 }
@@ -198,15 +291,15 @@ float stringToFloat(string s) {
 	return part1 + part2;
 }
 
-queue<string> parseToTokens(string s) {
-	queue<string> res;
+vector<string> parseToTokens(string s) {
+	vector<string> res;
 	string token = "";
 	for (int i = 0; i < s.size(); i++) {
 		string curr = "";
 		curr += s[i];
 		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " /*|| curr == "}" || curr == "{" */|| curr == ";") {
-			if (token != "")res.push(token);
-			if (curr != " ")res.push(curr);
+			if (token != "")res.push_back(token);
+			if (curr != " ")res.push_back(curr);
 			token = "";
 		}
 		else {
@@ -217,7 +310,7 @@ queue<string> parseToTokens(string s) {
 			}*/
 		}
 	}
-	res.push(token);
+	res.push_back(token);
 	return res;
 }
 
