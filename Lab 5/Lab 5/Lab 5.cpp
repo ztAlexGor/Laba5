@@ -15,6 +15,10 @@ bool isNumber(string);
 float stringToFloat(string);
 vector<string> parseToTokens(string);
 queue<string> readFromFile(ifstream&);
+class StatementList;
+class Tree ; 
+class BinTree;
+class IfTree;
 
 
 class Node {
@@ -61,64 +65,20 @@ public:
 };
 
 class Tree {
+	Tree* parent;
 public:
 	float Count(Node* start);
 	Node* GetHead();
-	void SetParent(StatementList* parent);
-};
-
-class StatementList {
-	map<string, float> statments;
-	vector<Tree*> StTrees;
-public:
-	StatementList(queue<string> ryad) {
-		while (!ryad.empty()) {
-			if (ryad.front()[0] == 'i' && ryad.front()[1] == 'f' && ryad.front()[2] == '(') {
-				string cond, yes, no;
-				int etap = 0;
-				for (int i = 0; i < ryad.front().size(); i++) {
-					if (ryad.front()[i] == '(' || ryad.front()[i] == '{')
-						etap++;
-					if (etap == 1 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
-						cond += ryad.front()[i];
-					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
-						yes += ryad.front()[i];
-					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
-						no += ryad.front()[i];
-				}
-				ryad.pop();
-				Tree* New = new IfTree(cond, yes, no);
-				StTrees.push_back(New);
-				New->SetParent(this);
-			}
-			else {
-				Tree* New = new BinTree(ryad.front());
-				ryad.pop();
-				StTrees.push_back(New);
-				New->SetParent(this);
-			}
-
-		}
+	void SetParent(Tree* parent) {
+		this->parent = parent;
 	}
-	float GetNumber(string key) {
-		return statments[key];
-	}
-	void AddStatment(string key, float value) {
-		statments[key] = value;
-	}
-	void Count() {
-		for (int i = 0; i < StTrees.size(); i++) {
-			if (i = StTrees.size() - 1)
-				cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ".";
-			else
-				StTrees[i]->Count(StTrees[i]->GetHead());
-		}
-	}
+	float GetNumber(string s);
+	void AddStatment(string key, float value);
 };
 
 class BinTree : public Tree {
 	bool IsState;
-	StatementList* parent;
+	Tree* parent;
 	Node* head;
 public:
 	BinTree(string ryad) {
@@ -192,7 +152,7 @@ public:
 			AddNode(head->right, right);
 		}
 	}
-	void SetParent(StatementList* parent) {
+	void SetParent(Tree* parent) {
 		this->parent = parent;
 	}
 	Node* GetHead() {
@@ -227,7 +187,7 @@ public:
 };
 
 class IfTree : public Tree {
-	StatementList* parent;
+	Tree* parent;
 	BinTree* Condition;
 	BinTree* True;
 	BinTree* False;
@@ -240,7 +200,7 @@ public:
 		False = new BinTree(no);
 		False->SetParent(parent);
 	}
-	void SetParent(StatementList* parent) {
+	void SetParent(Tree* parent) {
 		this->parent = parent;
 	}
 	float Count(){
@@ -251,12 +211,62 @@ public:
 	}
 };
 
+class StatementList : public Tree {
+	Tree* parent;
+	map<string, float> statments;
+	vector<Tree*> StTrees;
+public:
+	StatementList(queue<string> ryad) {
+		parent = nullptr;
+		while (!ryad.empty()) {
+			if (ryad.front()[0] == 'i' && ryad.front()[1] == 'f' && ryad.front()[2] == '(') {
+				string cond, yes, no;
+				int etap = 0;
+				for (int i = 0; i < ryad.front().size(); i++) {
+					if (ryad.front()[i] == '(' || ryad.front()[i] == '{')
+						etap++;
+					if (etap == 1 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						cond += ryad.front()[i];
+					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						yes += ryad.front()[i];
+					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{')
+						no += ryad.front()[i];
+				}
+				ryad.pop();
+				Tree* New = new IfTree(cond, yes, no);
+				StTrees.push_back(New);
+				New->SetParent(this);
+			}
+			else {
+				Tree* New = new BinTree(ryad.front());
+				ryad.pop();
+				StTrees.push_back(New);
+				New->SetParent(this);
+			}
 
+		}
+	}
+	float GetNumber(string key) {
+		return statments[key];
+	}
+	void AddStatment(string key, float value) {
+		statments[key] = value;
+	}
+	void Count() {
+		for (int i = 0; i < StTrees.size(); i++) {
+			if (i = StTrees.size() - 1)
+				cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ".";
+			else
+				StTrees[i]->Count(StTrees[i]->GetHead());
+		}
+	}
+};
 
 
 int main() {
 	ifstream input;
-	input.open("d:\\Учёба\\Файлы общего доступа\\KOD.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
+	cout << input.is_open();
 	queue<string> kod;
 	kod = readFromFile(input);
 	while (!kod.empty()) {
