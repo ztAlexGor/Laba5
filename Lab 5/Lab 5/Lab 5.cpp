@@ -157,7 +157,7 @@ public:
 			ptr = new Node(tokens[0]);
 		}
 		else {
-			output(tokens);
+			//output(tokens);
 			int brackets = 0;
 			int ind, prior = 7;
 			for (int i = tokens.size() - 1; i >= 0; i--) {
@@ -284,14 +284,14 @@ public:
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD2.txt");
 	vector<string> kod;
 	kod = readFromFile(input);
 	/*for (auto i: kod){
 		cout << i << endl << "//////////////////////////////////" << endl;
 	}*/
 	StatementList Lab(kod, 1);
-	Lab.Output(nullptr);
+	//Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
@@ -316,10 +316,13 @@ StatementList::StatementList(vector<string> tokens, bool arg) {
 				if (ifToken != ")")cond.push_back(ifToken);
 			}
 			tokens.erase(tokens.begin());
-			while (ifToken != "}") {//dkjsasdakasdkll }
+			int count = 1;
+			while (ifToken != "}" || count != 0) {//dkjsasdakasdkll }
 				ifToken = tokens.front();
 				tokens.erase(tokens.begin());
-				if (ifToken != "}")yes.push_back(ifToken);
+				if (ifToken == "{")count++;
+				if (ifToken == "}")count--;
+				if (ifToken != "}" || count > 0)yes.push_back(ifToken);
 			}
 			string s = tokens.front();
 
