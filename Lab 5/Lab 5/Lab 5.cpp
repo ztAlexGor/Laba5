@@ -97,7 +97,7 @@ public:
 		}
 		else {
 			int brackets = 0;
-			int ind, prior = 5;
+			int ind, prior = 7;
 			for (int i = tokens.size() - 1; i >= 0; i--) {
 				if (tokens[i] == ")") {
 					brackets++;
@@ -111,16 +111,24 @@ public:
 					prior = 1;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 2 && (tokens[i] == "+" || tokens[i] == "-")) {
+				if (brackets == 0 && prior > 2 && tokens[i] == "&&" && tokens[i] == "||") {
 					prior = 2;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 3 && (tokens[i] == "*" || tokens[i] == "/")) {
+				if (brackets == 0 && prior > 3 && tokens[i] == "==" && tokens[i] == "!=" && tokens[i] == ">" && tokens[i] == "<" && tokens[i] == ">=" && tokens[i] == "<=") {
 					prior = 3;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 4 && tokens[i] == "^") {
+				if (brackets == 0 && prior > 4 && (tokens[i] == "+" || tokens[i] == "-")) {
 					prior = 4;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 5 && (tokens[i] == "*" || tokens[i] == "/")) {
+					prior = 5;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 6 && tokens[i] == "^") {
+					prior = 6;
 					ind = i;
 				}
 			}
@@ -172,6 +180,46 @@ public:
 		}
 		if (currSymbol == "=") {
 			StatementList::statments[start->left->GetSymbol()] = Count(start->right);
+		}
+		if (currSymbol == "&&")
+			return Count(start->left) * Count(start->right);
+		if (currSymbol == "||")
+			return Count(start->left) + Count(start->right);
+		if (currSymbol == "==") {
+			if (Count(start->left) == Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "!=") {
+			if (Count(start->left) != Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == ">") {
+			if (Count(start->left) > Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "<") {
+			if (Count(start->left) < Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "<=") {
+			if (Count(start->left) <= Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == ">=") {
+			if (Count(start->left) >= Count(start->right))
+				return 1;
+			else
+				return 0;
 		}
 		if (currSymbol == "+")
 			return Count(start->left) + Count(start->right);
