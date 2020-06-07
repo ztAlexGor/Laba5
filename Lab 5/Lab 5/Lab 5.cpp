@@ -12,7 +12,8 @@ using namespace std;
 bool isNumber(string);
 float stringToFloat(string);
 queue<string> parseToTokens(string);
-queue<string> readFromFile(ifstream&);
+vector<string> readFromFile(ifstream&);
+void output(vector<string>);
 
 class Node {
 	string data;
@@ -70,10 +71,11 @@ public:
 };
 
 class StatementList : public Tree {
+	bool isCaptain;
 	vector<Tree*> StTrees;
 public:
 	static map<string, float> statments;
-	StatementList(queue<string> tokens);
+	StatementList(vector<string> tokens, bool arg);
 	float Count(Node* none) override;
 	void Output(Node* none) override;
 	Node* GetHead() override;
@@ -162,23 +164,24 @@ public:
 		return head;
 	}
 	float Count(Node* start) {
+		string currSymbol = start->GetSymbol();
 		if (!start->left) {
 			if (start->isNumber())
 				return start->GetNumber();
-			return StatementList::statments[start->GetSymbol()];
+			return StatementList::statments[currSymbol];
 		}
-		if (start->GetSymbol() == "=") {
+		if (currSymbol == "=") {
 			StatementList::statments[start->left->GetSymbol()] = Count(start->right);
 		}
-		if (start->GetSymbol() == "+")
+		if (currSymbol == "+")
 			return Count(start->left) + Count(start->right);
-		if (start->GetSymbol() == "-")
+		if (currSymbol == "-")
 			return Count(start->left) - Count(start->right);
-		if (start->GetSymbol() == "*")
+		if (currSymbol == "*")
 			return Count(start->left) * Count(start->right);
-		if (start->GetSymbol() == "/")
+		if (currSymbol == "/")
 			return Count(start->left) / Count(start->right);
-		if (start->GetSymbol() == "^")
+		if (currSymbol == "^")
 			return pow(Count(start->left), Count(start->right));
 	}
 	void SetState(bool k) {
@@ -195,22 +198,22 @@ public:
 class IfTree : public Tree {
 	Node* head;
 	BinTree* Condition;
-	BinTree* True;
-	BinTree* False;
+	StatementList* True;
+	StatementList* False;
 public:
 	IfTree(vector<string> cond, vector<string> yes, vector<string> no) {
 		head = nullptr;
 		Condition = new BinTree(cond);
-		True = new BinTree(yes);
+		True = new StatementList(yes, 0);
 		if (!no.empty()) {
-			False = new BinTree(no);
+			False = new StatementList(no, 0);
 		}
 		else False = nullptr;
 	}
 	float Count(Node* none) override {
 		if (Condition->Count(Condition->GetHead()) != 0)
 			return True->Count(True->GetHead());
-		else
+		else if (False)
 			return False->Count(False->GetHead());
 	}
 	void Output(Node* start) override {
@@ -233,14 +236,13 @@ public:
 int main() {
 	ifstream input;
 	input.open("D:\\Учёба\\Файлы общего доступа\\KOD3.txt");
-	queue<string> kod;
+	vector<string> kod;
 	kod = readFromFile(input);
-	/*while (!kod.empty()) {
-		cout << kod.front() << endl << "//////////////////////////////////" << endl;
-		kod.pop();
+	/*for (auto i: kod){
+		cout << i << endl << "//////////////////////////////////" << endl;
 	}*/
-	StatementList Lab(kod);
-	Lab.Output(nullptr);
+	StatementList Lab(kod, 1);
+	//Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
@@ -249,47 +251,44 @@ int main() {
 
 
 
-StatementList::StatementList(queue<string> tokens) {
+StatementList::StatementList(vector<string> tokens, bool arg) {
+	isCaptain = arg;
 	while (!tokens.empty()) {
 		string curr = tokens.front();//curr token
-		tokens.pop();
+		tokens.erase(tokens.begin());
 
 		if (curr == "if") {//poimavsay if
 			vector<string> cond, yes, no;
-			string ifToken = "";
-			while (ifToken != "(") {
-				ifToken = tokens.front();
-				tokens.pop();
-			}
-			ifToken = "";
+			string ifToken;
+			tokens.erase(tokens.begin());//if ( a ) { dkjsasdakasdkll }
 			while (ifToken != ")") {
-				cond.push_back(ifToken);
 				ifToken = tokens.front();
-				tokens.pop();
+				tokens.erase(tokens.begin());
+				if (ifToken != ")")cond.push_back(ifToken);
 			}
-			while (ifToken != "{") {
+			tokens.erase(tokens.begin());
+			while (ifToken != "}") {//dkjsasdakasdkll }
 				ifToken = tokens.front();
-				tokens.pop();
+				tokens.erase(tokens.begin());
+				if (ifToken != "}")yes.push_back(ifToken);
 			}
-			ifToken = "";
-			while (ifToken != "}") {
-				yes.push_back(ifToken);
-				ifToken = tokens.front();
-				tokens.pop();
-			}
+			string s = tokens.front();
 
 			if (tokens.front() == "else") {//else condition
 				while (ifToken != "{") {
 					ifToken = tokens.front();
-					tokens.pop();
+					tokens.erase(tokens.begin());
 				}
 				ifToken = "";
 				while (ifToken != "}") {
-					no.push_back(ifToken);
+					if (ifToken != "")no.push_back(ifToken);
 					ifToken = tokens.front();
-					tokens.pop();
+					tokens.erase(tokens.begin());
 				}
 			}
+			output(cond);
+			output(yes);
+			output(no);
 
 			Tree* New = new IfTree(cond, yes, no);
 			StTrees.push_back(New);
@@ -299,7 +298,7 @@ StatementList::StatementList(queue<string> tokens) {
 			while (curr != ";") {
 				rayd.push_back(curr);
 				curr = tokens.front();
-				tokens.pop();
+				tokens.erase(tokens.begin());
 			}
 			Tree* New = new BinTree(rayd);
 			StTrees.push_back(New);
@@ -308,7 +307,7 @@ StatementList::StatementList(queue<string> tokens) {
 }
 float StatementList::Count(Node* none) {
 	for (int i = 0; i < StTrees.size(); i++) {
-		if (i == StTrees.size() - 1)
+		if (isCaptain == 1 && i == StTrees.size() - 1)
 			cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ";";
 		else
 			StTrees[i]->Count(StTrees[i]->GetHead());
@@ -388,16 +387,26 @@ queue<string> parseToTokens(string s) {
 	return res;
 }
 
-queue<string> readFromFile(ifstream& inp) {
-	queue<string> kod, temp;
+vector<string> readFromFile(ifstream& inp) {
+	vector<string> kod;
+	queue<string> temp;
 	string s;
 	while (!inp.eof()) {
 		getline(inp, s);
 		temp = parseToTokens(s);
 		while (!temp.empty()) {
-			if (temp.front() != "")kod.push(temp.front());
+			if (temp.front() != "")kod.push_back(temp.front());
 			temp.pop();
 		}
 	}
 	return kod;
+}
+
+
+
+void output(vector<string> a) {
+	for (auto i : a) {
+		cout << i<<" ";
+	}
+	cout << endl;
 }
