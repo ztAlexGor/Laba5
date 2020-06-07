@@ -91,13 +91,74 @@ public:
 	BinTree(vector<string> tokens) {
 		AddNode(head, tokens);
 	}
+	float Count(Node* start) {
+		string currSymbol = start->GetSymbol();
+		if (!start->left) {
+			if (start->isNumber())
+				return start->GetNumber();
+			return StatementList::statments[currSymbol];
+		}
+		if (currSymbol == "=") {
+			StatementList::statments[start->left->GetSymbol()] = Count(start->right);
+		}
+		if (currSymbol == "&&")
+			return Count(start->left) * Count(start->right);
+		if (currSymbol == "||")
+			return Count(start->left) + Count(start->right);
+		if (currSymbol == "==") {
+			if (Count(start->left) == Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "!=") {
+			if (Count(start->left) != Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == ">") {
+			if (Count(start->left) > Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "<") {
+			if (Count(start->left) < Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "<=") {
+			if (Count(start->left) <= Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == ">=") {
+			if (Count(start->left) >= Count(start->right))
+				return 1;
+			else
+				return 0;
+		}
+		if (currSymbol == "+")
+			return Count(start->left) + Count(start->right);
+		if (currSymbol == "-")
+			return Count(start->left) - Count(start->right);
+		if (currSymbol == "*")
+			return Count(start->left) * Count(start->right);
+		if (currSymbol == "/")
+			return Count(start->left) / Count(start->right);
+		if (currSymbol == "^")
+			return pow(Count(start->left), Count(start->right));
+	}
 	void AddNode(Node*& ptr, vector<string> tokens) {
 		if (tokens.size() == 1) {
 			ptr = new Node(tokens[0]);
 		}
 		else {
 			int brackets = 0;
-			int ind, prior = 5;
+			int ind, prior = 7;
 			for (int i = tokens.size() - 1; i >= 0; i--) {
 				if (tokens[i] == ")") {
 					brackets++;
@@ -111,16 +172,24 @@ public:
 					prior = 1;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 2 && (tokens[i] == "+" || tokens[i] == "-")) {
+				if (brackets == 0 && prior > 2 && tokens[i] == "&&" || tokens[i] == "||") {
 					prior = 2;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 3 && (tokens[i] == "*" || tokens[i] == "/")) {
+				if (brackets == 0 && prior > 3 && tokens[i] == "==" || tokens[i] == "!=" || tokens[i] == ">" || tokens[i] == "<" || tokens[i] == ">=" || tokens[i] == "<=") {
 					prior = 3;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 4 && tokens[i] == "^") {
+				if (brackets == 0 && prior > 4 && (tokens[i] == "+" || tokens[i] == "-")) {
 					prior = 4;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 5 && (tokens[i] == "*" || tokens[i] == "/")) {
+					prior = 5;
+					ind = i;
+				}
+				if (brackets == 0 && prior > 6 && tokens[i] == "^") {
+					prior = 6;
 					ind = i;
 				}
 			}
@@ -162,27 +231,6 @@ public:
 	}
 	Node* GetHead() {
 		return head;
-	}
-	float Count(Node* start) {
-		string currSymbol = start->GetSymbol();
-		if (!start->left) {
-			if (start->isNumber())
-				return start->GetNumber();
-			return StatementList::statments[currSymbol];
-		}
-		if (currSymbol == "=") {
-			StatementList::statments[start->left->GetSymbol()] = Count(start->right);
-		}
-		if (currSymbol == "+")
-			return Count(start->left) + Count(start->right);
-		if (currSymbol == "-")
-			return Count(start->left) - Count(start->right);
-		if (currSymbol == "*")
-			return Count(start->left) * Count(start->right);
-		if (currSymbol == "/")
-			return Count(start->left) / Count(start->right);
-		if (currSymbol == "^")
-			return pow(Count(start->left), Count(start->right));
 	}
 	void SetState(bool k) {
 		IsState = k;
@@ -235,7 +283,7 @@ public:
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD3.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
 	vector<string> kod;
 	kod = readFromFile(input);
 	/*for (auto i: kod){
@@ -332,14 +380,6 @@ Node* StatementList::GetHead() {
 
 
 
-
-
-
-
-
-
-
-
 bool isNumber(string s) {
 	for (int i = 0; i < s.size(); i++) {
 		if (((int)s[i] < 48 || (int)s[i] > 57) && s[i] != '.')return false;
@@ -370,17 +410,48 @@ queue<string> parseToTokens(string s) {
 	for (int i = 0; i < s.size(); i++) {
 		string curr = "";
 		curr += s[i];
-		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";") {
+		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";" || curr == ">" || curr == "<" || curr == "|" || curr == "&" || curr == "!") {
 			if (token != "")res.push(token);
-			if (curr != " ")res.push(curr);
+			if (curr != " ") {
+				if (curr == "=" && s[i + 1] == '=') {
+					i++;
+					res.push("==");
+				}
+				else if (curr == "&" && s[i + 1] == '&') {
+					i++;
+					res.push("&&");
+				}
+				else if (curr == "!" && s[i + 1] == '=') {
+					i++;
+					res.push("!=");
+				}
+				else if (curr == "|" && s[i + 1] == '|') {
+					i++;
+					res.push("||");
+				}
+				else if (curr == ">") {
+					if (s[i + 1] == '=') {
+						res.push(">=");
+						i++;
+					}
+					else {
+						res.push(">");
+					}
+				}
+				else if (curr == "<") {
+					if (s[i + 1] == '=') {
+						res.push("<=");
+						i++;
+					}
+					else {
+						res.push("<");
+					}
+				}else res.push(curr);
+			}
 			token = "";
 		}
 		else {
 			token += curr;
-			/*if (token == "if") {
-			  res.push(token);
-			  token = "";
-			}*/
 		}
 	}
 	res.push(token);
@@ -402,11 +473,9 @@ vector<string> readFromFile(ifstream& inp) {
 	return kod;
 }
 
-
-
 void output(vector<string> a) {
 	for (auto i : a) {
-		cout << i<<" ";
+		cout << i << " ";
 	}
 	cout << endl;
 }
