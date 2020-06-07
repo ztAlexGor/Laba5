@@ -284,7 +284,7 @@ public:
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD2.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD4.txt");
 	vector<string> kod;
 	kod = readFromFile(input);
 	/*for (auto i: kod){
@@ -292,7 +292,7 @@ int main() {
 	}*/
 	StatementList Lab(kod, 1);
 	//Lab.Output(nullptr);
-	Lab.Count(nullptr);
+	//Lab.Count(nullptr);
 	_getch();
 }
 
@@ -317,16 +317,16 @@ StatementList::StatementList(vector<string> tokens, bool arg) {
 			}
 			tokens.erase(tokens.begin());
 			int count = 1;
+			cout<< "000000" <<tokens.front() <<"000000";
 			while (ifToken != "}" || count != 0) {//dkjsasdakasdkll }
 				ifToken = tokens.front();
 				tokens.erase(tokens.begin());
 				if (ifToken == "{")count++;
+				if (ifToken != "}" || count > 1)yes.push_back(ifToken);
 				if (ifToken == "}")count--;
-				if (ifToken != "}" || count > 0)yes.push_back(ifToken);
 			}
-			string s = tokens.front();
-
-			if (tokens.front() == "else") {//else condition
+			
+			if (!tokens.empty() && tokens.front() == "else") {//else condition
 				while (ifToken != "{") {
 					ifToken = tokens.front();
 					tokens.erase(tokens.begin());
@@ -459,6 +459,7 @@ queue<string> parseToTokens(string s) {
 		}
 	}
 	res.push(token);
+	if (token != ";" && token != "}" && token != "{" && token != "if" && token != "else" && token != ")" && token != "")res.push(";");
 	return res;
 }
 
