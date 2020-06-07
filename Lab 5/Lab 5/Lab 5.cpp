@@ -83,8 +83,7 @@ class BinTree : public Tree {
 	bool IsState;
 	Node* head;
 public:
-	BinTree(string ryad) {
-		vector<string> tokens = parseToTokens(ryad);
+	BinTree(vector<string> tokens) {
 		AddNode(head, tokens);
 	}
 	void AddNode(Node*& ptr, vector<string> tokens) {
