@@ -260,7 +260,7 @@ public:
 						cond += ryad.front()[i];
 					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
 						if (ryad.front()[i] == 'e' && ryad.front()[i + 1] == 'l' && ryad.front()[i + 2] == 's' && ryad.front()[i + 3] == 'e')
-							i += 4;
+							i += 3;
 						else
 							yes += ryad.front()[i];
 					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
@@ -311,7 +311,7 @@ public:
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD2.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
 	queue<string> kod;
 	kod = readFromFile(input);
 	/*while (!kod.empty()) {
@@ -319,7 +319,7 @@ int main() {
 		kod.pop();
 	}*/
 	StatementList Lab(kod);
-	//Lab.Output(nullptr);
+	Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
@@ -370,9 +370,9 @@ vector<string> parseToTokens(string s) {
 	res.push_back(token);
 	if (res[res.size() - 1][res[res.size() - 1].size() - 1] == ';')
 		res[res.size() - 1].erase(res[res.size() - 1].size() - 1);
-	/*for (int i = 0; i < res.size(); i++) {
+	for (int i = 0; i < res.size(); i++) {
 		cout << res[i] << endl;
-	}*/
+	}
 	return res;
 }
 
