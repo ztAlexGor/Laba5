@@ -13,10 +13,6 @@ bool isNumber(string);
 float stringToFloat(string);
 vector<string> parseToTokens(string);
 queue<string> readFromFile(ifstream&);
-class StatementList;
-class Tree; 
-class BinTree;
-class IfTree;
 
 class Node {
 	string data;
@@ -38,11 +34,9 @@ public:
 		}
 		return true;
 	}
-
 	string GetSymbol() {
 		return data;
 	}
-
 	float GetNumber() {
 		float part1 = 0, part2 = 0;
 		int it = 0;
@@ -266,7 +260,7 @@ public:
 						cond += ryad.front()[i];
 					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
 						if (ryad.front()[i] == 'e' && ryad.front()[i + 1] == 'l' && ryad.front()[i + 2] == 's' && ryad.front()[i + 3] == 'e')
-							i += 4;
+							i += 3;
 						else
 							yes += ryad.front()[i];
 					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
@@ -325,7 +319,7 @@ int main() {
 		kod.pop();
 	}*/
 	StatementList Lab(kod);
-	//Lab.Output(nullptr);
+	Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
@@ -376,9 +370,9 @@ vector<string> parseToTokens(string s) {
 	res.push_back(token);
 	if (res[res.size() - 1][res[res.size() - 1].size() - 1] == ';')
 		res[res.size() - 1].erase(res[res.size() - 1].size() - 1);
-	/*for (int i = 0; i < res.size(); i++) {
+	for (int i = 0; i < res.size(); i++) {
 		cout << res[i] << endl;
-	}*/
+	}
 	return res;
 }
 
