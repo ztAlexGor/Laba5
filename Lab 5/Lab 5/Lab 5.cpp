@@ -63,28 +63,30 @@ public:
 };
 
 class Tree {
-protected:
-	Tree* parent;
 public:
 	virtual float Count(Node* start) = 0;
 	virtual Node* GetHead() = 0;
-	virtual void SetParent(Tree* parent) {
-		this->parent = parent;
-	}
-	virtual float GetNumber(string s) = 0;
-	virtual void AddStatment(string key, float value) = 0;
 	virtual void Output(Node* root) = 0;
-	Tree* GetParent() {
-		return parent;
-	}
 };
+
+class StatementList : public Tree {
+	vector<Tree*> StTrees;
+public:
+	static map<string, float> statments;
+	StatementList(queue<string> tokens);
+	float Count(Node* none) override;
+	void Output(Node* none) override;
+	Node* GetHead() override;
+};
+
+map<string, float> StatementList::statments;
+
 
 class BinTree : public Tree {
 	bool IsState;
 	Node* head;
 public:
-	BinTree(string ryad) {
-		vector<string> tokens = parseToTokens(ryad);
+	BinTree(vector<string> tokens) {
 		AddNode(head, tokens);
 	}
 	void AddNode(Node*& ptr, vector<string> tokens) {
@@ -163,10 +165,10 @@ public:
 		if (!start->left) {
 			if (start->isNumber())
 				return start->GetNumber();
-			return parent->GetNumber(start->GetSymbol());
+			return StatementList::statments[start->GetSymbol()];
 		}
 		if (start->GetSymbol() == "=") {
-			parent->AddStatment(start->left->GetSymbol(), Count(start->right));
+			StatementList::statments[start->left->GetSymbol()] = Count(start->right);
 		}
 		if (start->GetSymbol() == "+")
 			return Count(start->left) + Count(start->right);
@@ -188,12 +190,6 @@ public:
 	void Output(Node* start) override {
 		start->Output();
 	}
-	void AddStatment(string key, float value) override {
-
-	}
-	float GetNumber(string s) override {
-		return 0;
-	}
 };
 
 class IfTree : public Tree {
@@ -202,14 +198,14 @@ class IfTree : public Tree {
 	BinTree* True;
 	BinTree* False;
 public:
-	IfTree(string cond, string yes, string no) {
+	IfTree(vector<string> cond, vector<string> yes, vector<string> no) {
 		head = nullptr;
 		Condition = new BinTree(cond);
-		Condition->SetParent(parent);
 		True = new BinTree(yes);
-		True->SetParent(parent);
-		False = new BinTree(no);
-		False->SetParent(parent);
+		if (!no.empty()) {
+			False = new BinTree(no);
+		}
+		else False = nullptr;
 	}
 	float Count(Node* none) override {
 		if (Condition->Count(Condition->GetHead()) != 0)
@@ -229,89 +225,14 @@ public:
 	Node* GetHead() {
 		return head;
 	}
-	void AddStatment(string key, float value) override {
-
-	}
-	float GetNumber(string s) override {
-		return 0;
-	}
-	void SetParent(Tree* parent) override {
-		this->parent = parent;
-		Condition->SetParent(parent);
-		True->SetParent(parent);
-		False->SetParent(parent);
-	}
 };
 
-class StatementList : public Tree {
-	map<string, float> statments;
-	vector<Tree*> StTrees;
-public:
-	StatementList(queue<string> tokens) {
-		parent = this;
-		while (!tokens.empty()) {
-			if (tokens.front() == "if") {
-				string cond, yes, no;
-				int etap = 0;
-				for (int i = 0; i < tokens.front().size(); i++) {
-					if (tokens.front()[i] == '(' || tokens.front()[i] == '{')
-						etap++;
-					if (etap == 1 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
-						cond += tokens.front()[i];
-					if (etap == 2 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
-						if (tokens.front()[i] == 'e' && tokens.front()[i + 1] == 'l' && tokens.front()[i + 2] == 's' && tokens.front()[i + 3] == 'e')
-							i += 3;
-						else
-							yes += tokens.front()[i];
-					if (etap == 3 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
-						no += tokens.front()[i];
-				}
-				tokens.pop();
-				Tree* New = new IfTree(cond, yes, no);
-				StTrees.push_back(New);
-				New->SetParent(this);
-			}
-			else {
-				Tree* New = new BinTree(tokens.front());
-				tokens.pop();
-				StTrees.push_back(New);
-				New->SetParent(this);
-			}
 
-		}
-	}
-	float GetNumber(string key) {
-		return statments[key];
-	}
-	void AddStatment(string key, float value) {
-		statments[key] = value;
-	}
-	float Count(Node* none) override {
-		for (int i = 0; i < StTrees.size(); i++) {
-			if (i == StTrees.size() - 1)
-				cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ";";
-			else
-				StTrees[i]->Count(StTrees[i]->GetHead());
-		}
-		return 0;
-	}
-	void Output(Node* none) override {
-		for (int i = 0; i < StTrees.size(); i++) {
-			StTrees[i]->Output(StTrees[i]->GetHead());
-			cout << endl << "/////////////" << endl;
-		}
-	}
-	Node* GetHead() override {
-		return nullptr;
-	}
-	Tree* GetParentOf(int i) {
-		return StTrees[i]->GetParent();
-	}
-};
+
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD3.txt");
 	queue<string> kod;
 	kod = readFromFile(input);
 	/*while (!kod.empty()) {
@@ -323,6 +244,102 @@ int main() {
 	Lab.Count(nullptr);
 	_getch();
 }
+
+
+
+
+
+StatementList::StatementList(queue<string> tokens) {
+	while (!tokens.empty()) {
+		string curr = tokens.front();//curr token
+		tokens.pop();
+
+		if (curr == "if") {//poimavsay if
+			vector<string> cond, yes, no;
+			string ifToken = "";
+			while (ifToken != "(") {
+				ifToken = tokens.front();
+				tokens.pop();
+			}
+			ifToken = "";
+			while (ifToken != ")") {
+				cond.push_back(ifToken);
+				ifToken = tokens.front();
+				tokens.pop();
+			}
+			while (ifToken != "{") {
+				ifToken = tokens.front();
+				tokens.pop();
+			}
+			ifToken = "";
+			while (ifToken != "}") {
+				yes.push_back(ifToken);
+				ifToken = tokens.front();
+				tokens.pop();
+			}
+
+			if (tokens.front() == "else") {//else condition
+				while (ifToken != "{") {
+					ifToken = tokens.front();
+					tokens.pop();
+				}
+				ifToken = "";
+				while (ifToken != "}") {
+					no.push_back(ifToken);
+					ifToken = tokens.front();
+					tokens.pop();
+				}
+			}
+
+			Tree* New = new IfTree(cond, yes, no);
+			StTrees.push_back(New);
+		}
+		else {
+			vector<string> rayd;
+			while (curr != ";") {
+				rayd.push_back(curr);
+				curr = tokens.front();
+				tokens.pop();
+			}
+			Tree* New = new BinTree(rayd);
+			StTrees.push_back(New);
+		}
+	}
+}
+float StatementList::Count(Node* none) {
+	for (int i = 0; i < StTrees.size(); i++) {
+		if (i == StTrees.size() - 1)
+			cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ";";
+		else
+			StTrees[i]->Count(StTrees[i]->GetHead());
+	}
+	return 0;
+}
+void StatementList::Output(Node* none) {
+	for (int i = 0; i < StTrees.size(); i++) {
+		StTrees[i]->Output(StTrees[i]->GetHead());
+		cout << endl << "/////////////" << endl;
+	}
+}
+Node* StatementList::GetHead() {
+	return nullptr;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool isNumber(string s) {
 	for (int i = 0; i < s.size(); i++) {
