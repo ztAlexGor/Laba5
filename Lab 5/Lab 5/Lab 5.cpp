@@ -157,6 +157,7 @@ public:
 			ptr = new Node(tokens[0]);
 		}
 		else {
+			output(tokens);
 			int brackets = 0;
 			int ind, prior = 7;
 			for (int i = tokens.size() - 1; i >= 0; i--) {
@@ -168,15 +169,15 @@ public:
 					brackets--;
 					continue;
 				}
-				if (brackets == 0 && prior > 1 && tokens[i] == "=") {
+				if (brackets == 0 && prior > 1 && tokens[i] == "||") {
 					prior = 1;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 2 && tokens[i] == "&&" || tokens[i] == "||") {
+				if (brackets == 0 && prior > 2 && tokens[i] == "&&") {
 					prior = 2;
 					ind = i;
 				}
-				if (brackets == 0 && prior > 3 && tokens[i] == "==" || tokens[i] == "!=" || tokens[i] == ">" || tokens[i] == "<" || tokens[i] == ">=" || tokens[i] == "<=") {
+				if (brackets == 0 && prior > 3 && (tokens[i] == "==" || tokens[i] == "!=" || tokens[i] == ">" || tokens[i] == "<" || tokens[i] == ">=" || tokens[i] == "<=" || tokens[i] == "=")) {
 					prior = 3;
 					ind = i;
 				}
@@ -290,7 +291,7 @@ int main() {
 		cout << i << endl << "//////////////////////////////////" << endl;
 	}*/
 	StatementList Lab(kod, 1);
-	//Lab.Output(nullptr);
+	Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
