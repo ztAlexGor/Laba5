@@ -11,7 +11,7 @@ using namespace std;
 
 bool isNumber(string);
 float stringToFloat(string);
-vector<string> parseToTokens(string);
+queue<string> parseToTokens(string);
 queue<string> readFromFile(ifstream&);
 
 class Node {
@@ -247,33 +247,33 @@ class StatementList : public Tree {
 	map<string, float> statments;
 	vector<Tree*> StTrees;
 public:
-	StatementList(queue<string> ryad) {
+	StatementList(queue<string> tokens) {
 		parent = this;
-		while (!ryad.empty()) {
-			if (ryad.front()[0] == 'i' && ryad.front()[1] == 'f' && ryad.front()[2] == '(') {
+		while (!tokens.empty()) {
+			if (tokens.front() == "if") {
 				string cond, yes, no;
 				int etap = 0;
-				for (int i = 0; i < ryad.front().size(); i++) {
-					if (ryad.front()[i] == '(' || ryad.front()[i] == '{')
+				for (int i = 0; i < tokens.front().size(); i++) {
+					if (tokens.front()[i] == '(' || tokens.front()[i] == '{')
 						etap++;
-					if (etap == 1 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
-						cond += ryad.front()[i];
-					if (etap == 2 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
-						if (ryad.front()[i] == 'e' && ryad.front()[i + 1] == 'l' && ryad.front()[i + 2] == 's' && ryad.front()[i + 3] == 'e')
+					if (etap == 1 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
+						cond += tokens.front()[i];
+					if (etap == 2 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
+						if (tokens.front()[i] == 'e' && tokens.front()[i + 1] == 'l' && tokens.front()[i + 2] == 's' && tokens.front()[i + 3] == 'e')
 							i += 3;
 						else
-							yes += ryad.front()[i];
-					if (etap == 3 && ryad.front()[i] != '\n' && ryad.front()[i] != ')' && ryad.front()[i] != '}' && ryad.front()[i] != '{' && ryad.front()[i] != '(' && ryad.front()[i] != ';')
-						no += ryad.front()[i];
+							yes += tokens.front()[i];
+					if (etap == 3 && tokens.front()[i] != '\n' && tokens.front()[i] != ')' && tokens.front()[i] != '}' && tokens.front()[i] != '{' && tokens.front()[i] != '(' && tokens.front()[i] != ';')
+						no += tokens.front()[i];
 				}
-				ryad.pop();
+				tokens.pop();
 				Tree* New = new IfTree(cond, yes, no);
 				StTrees.push_back(New);
 				New->SetParent(this);
 			}
 			else {
-				Tree* New = new BinTree(ryad.front());
-				ryad.pop();
+				Tree* New = new BinTree(tokens.front());
+				tokens.pop();
 				StTrees.push_back(New);
 				New->SetParent(this);
 			}
@@ -348,15 +348,15 @@ float stringToFloat(string s) {
 	return part1 + part2;
 }
 
-vector<string> parseToTokens(string s) {
-	vector<string> res;
+queue<string> parseToTokens(string s) {
+	queue<string> res;
 	string token = "";
 	for (int i = 0; i < s.size(); i++) {
 		string curr = "";
 		curr += s[i];
-		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " /*|| curr == "}" || curr == "{" || curr == ";"*/) {
-			if (token != "")res.push_back(token);
-			if (curr != " ")res.push_back(curr);
+		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";") {
+			if (token != "")res.push(token);
+			if (curr != " ")res.push(curr);
 			token = "";
 		}
 		else {
@@ -367,36 +367,20 @@ vector<string> parseToTokens(string s) {
 			}*/
 		}
 	}
-	res.push_back(token);
-	if (res[res.size() - 1][res[res.size() - 1].size() - 1] == ';')
-		res[res.size() - 1].erase(res[res.size() - 1].size() - 1);
-	for (int i = 0; i < res.size(); i++) {
-		cout << res[i] << endl;
-	}
+	res.push(token);
 	return res;
 }
 
 queue<string> readFromFile(ifstream& inp) {
-	queue<string> kod;
+	queue<string> kod, temp;
 	string s;
 	while (!inp.eof()) {
 		getline(inp, s);
-		if (s[0] == '\n')
-			s.erase(0, 1);
-		if (s[0] == 'i' && s[1] == 'f' && s[2] == '(') {
-			string g;
-			while (g != "}") {
-				getline(inp, g);
-				s += g;
-			}
-			g.clear();
-			while (g != "}") {
-				getline(inp, g);
-				s += g;
-			}
+		temp = parseToTokens(s);
+		while (!temp.empty()) {
+			if (temp.front() != "")kod.push(temp.front());
+			temp.pop();
 		}
-		if (!s.empty())
-			kod.push(s);
 	}
 	return kod;
 }
