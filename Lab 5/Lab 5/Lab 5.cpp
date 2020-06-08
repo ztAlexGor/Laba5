@@ -70,14 +70,12 @@ public:
 			right->Output();
 	}
 };
-
 class Tree {
 public:
 	virtual float Count(Node* start) = 0;
 	virtual Node* GetHead() = 0;
 	virtual void Output(Node* root) = 0;
 };
-
 class StatementList : public Tree {
 	bool isCaptain;
 	vector<Tree*> StTrees;
@@ -88,10 +86,7 @@ public:
 	void Output(Node* none) override;
 	Node* GetHead() override;
 };
-
 map<string, float> StatementList::statments;
-
-
 class BinTree : public Tree {
 	bool IsState;
 	Node* head;
@@ -251,7 +246,6 @@ public:
 		start->Output();
 	}
 };
-
 class IfTree : public Tree {
 	Node* head;
 	BinTree* Condition;
@@ -287,9 +281,6 @@ public:
 	}
 };
 
-
-
-
 int main() {
 	ifstream input;
 	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
@@ -303,10 +294,6 @@ int main() {
 	Lab.Count(nullptr);
 	_getch();
 }
-
-
-
-
 
 StatementList::StatementList(vector<string> tokens, bool arg) {
 	isCaptain = arg;
@@ -346,9 +333,9 @@ StatementList::StatementList(vector<string> tokens, bool arg) {
 					tokens.erase(tokens.begin());
 				}
 			}
-			output(cond);
+			/*output(cond);
 			output(yes);
-			output(no);
+			output(no);*/
 
 			Tree* New = new IfTree(cond, yes, no);
 			StTrees.push_back(New);
@@ -385,20 +372,12 @@ Node* StatementList::GetHead() {
 }
 
 
-
-
-
-
-
-
-
 bool isNumber(string s) {
 	for (int i = 0; i < s.size(); i++) {
 		if (((int)s[i] < 48 || (int)s[i] > 57) && s[i] != '.' && s[i] != '-')return false;
 	}
 	return true;
 }
-
 float stringToFloat(string s) {
 	bool minus = false;
 	if (s[0] == '-') {
@@ -422,7 +401,6 @@ float stringToFloat(string s) {
 		return (part1 + part2)*-1;
 	return part1 + part2;
 }
-
 queue<string> parseToTokens(string s) {
 	queue<string> res;
 	string token = "";
@@ -488,7 +466,6 @@ queue<string> parseToTokens(string s) {
 	if (token != ";" && token != "}" && token != "{" && token != "if" && token != "else" && token != ")" && token != "")res.push(";");
 	return res;
 }
-
 vector<string> readFromFile(ifstream& inp) {
 	vector<string> kod;
 	queue<string> temp;
@@ -501,12 +478,8 @@ vector<string> readFromFile(ifstream& inp) {
 			temp.pop();
 		}
 	}
-	for(int i = 0; i < kod.size(); i++) {
-		cout << kod[i] << endl;
-	}
 	return kod;
 }
-
 void output(vector<string> a) {
 	for (auto i : a) {
 		cout << i << " ";
