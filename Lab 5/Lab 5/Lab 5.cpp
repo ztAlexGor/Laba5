@@ -99,6 +99,10 @@ public:
 		if (!start->left) {
 			if (start->isNumber())
 				return start->GetNumber();
+			if (currSymbol[0] == '-') {
+				currSymbol.erase(0, 1);
+				return -StatementList::statments[currSymbol];
+			}
 			return StatementList::statments[currSymbol];
 		}
 		if (currSymbol == "=") {
@@ -290,7 +294,7 @@ int main() {
 		cout << i << endl << "//////////////////////////////////" << endl;
 	}*/
 	StatementList Lab(kod, 1);
-	//Lab.Output(nullptr);
+	Lab.Output(nullptr);
 	Lab.Count(nullptr);
 	_getch();
 }
@@ -353,9 +357,13 @@ StatementList::StatementList(vector<string> tokens, bool arg) {
 	}
 }
 float StatementList::Count(Node* none) {
+	float result;
 	for (int i = 0; i < StTrees.size(); i++) {
-		if (isCaptain == 1 && i == StTrees.size() - 1)
-			cout << "Result = " << StTrees[i]->Count(StTrees[i]->GetHead()) << ";";
+		if (isCaptain == 1 && i == StTrees.size() - 1) {
+			result = StTrees[i]->Count(StTrees[i]->GetHead());
+			cout << "Result = " << result << ";";
+			return result;
+		}
 		else
 			StTrees[i]->Count(StTrees[i]->GetHead());
 	}
