@@ -30,7 +30,7 @@ public:
 	}
 	bool isNumber() {
 		for (int i = 0; i < data.size(); i++) {
-			if (((int)data[i] < 48 || (int)data[i] > 57) && data[i] != '.')
+			if (((int)data[i] < 48 || (int)data[i] > 57) && data[i] != '.' && data[i] != '-')
 				return false;
 		}
 		return true;
@@ -38,7 +38,13 @@ public:
 	string GetSymbol() {
 		return data;
 	}
+
 	float GetNumber() {
+		bool minus = false;
+		if (data[0] == '-') {
+			minus = true;
+			data.erase(0,1);
+		}
 		float part1 = 0, part2 = 0;
 		int it = 0;
 		while (it < data.size() && data[it] != '.') {
@@ -52,6 +58,8 @@ public:
 				part2 /= 10;
 			}
 		}
+		if (minus)
+			return (part1 + part2) * -1;
 		return part1 + part2;
 	}
 	void Output() {
@@ -284,7 +292,7 @@ public:
 
 int main() {
 	ifstream input;
-	input.open("D:\\Учёба\\Файлы общего доступа\\KOD2.txt");
+	input.open("D:\\Учёба\\Файлы общего доступа\\KOD.txt");
 	vector<string> kod;
 	kod = readFromFile(input);
 	/*for (auto i: kod){
@@ -324,9 +332,9 @@ StatementList::StatementList(vector<string> tokens, bool arg) {
 				if (ifToken == "}")count--;
 				if (ifToken != "}" || count > 0)yes.push_back(ifToken);
 			}
-			string s = tokens.front();
+			//string s = tokens.front();
 
-			if (tokens.front() == "else") {//else condition
+			if (!tokens.empty() && tokens.front() == "else") {//else condition
 				while (ifToken != "{") {
 					ifToken = tokens.front();
 					tokens.erase(tokens.begin());
@@ -386,12 +394,17 @@ Node* StatementList::GetHead() {
 
 bool isNumber(string s) {
 	for (int i = 0; i < s.size(); i++) {
-		if (((int)s[i] < 48 || (int)s[i] > 57) && s[i] != '.')return false;
+		if (((int)s[i] < 48 || (int)s[i] > 57) && s[i] != '.' && s[i] != '-')return false;
 	}
 	return true;
 }
 
 float stringToFloat(string s) {
+	bool minus = false;
+	if (s[0] == '-') {
+		minus = true;
+		s.erase(0);
+	}
 	float part1 = 0, part2 = 0;
 	int it = 0;
 	while (it < s.size() && s[it] != '.') {
@@ -405,18 +418,27 @@ float stringToFloat(string s) {
 			part2 /= 10;
 		}
 	}
+	if(minus)
+		return (part1 + part2)*-1;
 	return part1 + part2;
 }
 
 queue<string> parseToTokens(string s) {
 	queue<string> res;
 	string token = "";
+	bool minus = false;
 	for (int i = 0; i < s.size(); i++) {
 		string curr = "";
 		curr += s[i];
 		if (curr == "-" || curr == "+" || curr == "*" || curr == "/" || curr == "^" || curr == "=" || curr == "(" || curr == ")" || curr == " " || curr == "}" || curr == "{" || curr == ";" || curr == ">" || curr == "<" || curr == "|" || curr == "&" || curr == "!") {
-			if (token != "")res.push(token);
+			if (token != "") {
+				res.push(token);
+			}
 			if (curr != " ") {
+				if (curr == "-" && (res.back() == "-" || res.back() == "+" || res.back() == "*" || res.back() == "/" || res.back() == "=" || res.back() == "^" || res.back() == "&&" || res.back() == "||" || res.back() == "==" || res.back() == "!=" || res.back() == "<" || res.back() == ">" || res.back() == "<=" || res.back() == ">=")) {
+					minus = true;
+				}
+				else
 				if (curr == "=" && s[i + 1] == '=') {
 					i++;
 					res.push("==");
@@ -455,10 +477,15 @@ queue<string> parseToTokens(string s) {
 			token = "";
 		}
 		else {
+			if (minus) {
+				minus = false;
+				token += "-";
+			}
 			token += curr;
 		}
 	}
 	res.push(token);
+	if (token != ";" && token != "}" && token != "{" && token != "if" && token != "else" && token != ")" && token != "")res.push(";");
 	return res;
 }
 
@@ -473,6 +500,9 @@ vector<string> readFromFile(ifstream& inp) {
 			if (temp.front() != "")kod.push_back(temp.front());
 			temp.pop();
 		}
+	}
+	for(int i = 0; i < kod.size(); i++) {
+		cout << kod[i] << endl;
 	}
 	return kod;
 }
